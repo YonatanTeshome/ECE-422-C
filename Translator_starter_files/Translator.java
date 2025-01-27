@@ -9,9 +9,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class Translator 
+public class Translator
 {
-	
+
 
 	/**
 	 * Opens the file specified in String filename, reads each line in it
@@ -19,99 +19,114 @@ public class Translator
 	 * translated piglatin string.
 	 * @param filename - the name of the file that needs to be read
 	 */
-	public static void processLinesInFile (String filename) 
-	{ 
+	public static void processLinesInFile (String filename)
+	{
 
-		Translator translator = new Translator(); 
-		try 
+		Translator translator = new Translator();
+		try
 		{
 			FileReader freader = new FileReader(filename);
 			BufferedReader reader = new BufferedReader(freader);
-			
-			for (String s = reader.readLine(); s != null; s = reader.readLine()) 
+
+			for (String s = reader.readLine(); s != null; s = reader.readLine())
 			{
 				System.out.println("The input string is: " + s);
-                                String pigLatin = translator.translate(s);
+				String pigLatin = translator.translate(s);
 				System.out.println("The Pig Latin version is: " + pigLatin);
 			}
-		} 
-		catch (FileNotFoundException e) 
+		}
+		catch (FileNotFoundException e)
 		{
 			System.err.println ("Error: File not found. Exiting...");
 			e.printStackTrace();
 			System.exit(-1);
-		} 
-                catch (IOException e) 
+		}
+		catch (IOException e)
 		{
 			System.err.println ("Error: IO exception. Exiting...");
 			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
-	
+
 	/**
 	 * Converts the inputString into piglatin based on rules specified 
 	 * in your assignment write-up. 
-	 * 
+	 *
 	 * @param inputString - the String that needs to be translated to 
 	 * 			piglatin
 	 * @return the String object containing the piglatin translation of the
 	 *         inputString    
 	 */
-	public String translate (String inputString) 
-	{ 
-		// modify the following code. Add/delete anything you want after this point.
-		StringBuilder outputString = new StringBuilder(); // StringBuilder allows for effective string manipulation
-		
-		String[] words = inputString.split("\\s+"); // Splitting the string into words (/s+ matches multiple whitespace)
+	public String translate (String inputString) {
 
 		if (inputString == null || inputString.trim().isEmpty()) {
-			return ""; // Return an empty string or appropriate default value
+			return ""; // Return an empty string
 		}
+
+		StringBuilder outputString = new StringBuilder(); // StringBuilder allows for effective string manipulation
+
+		String[] words = inputString.split("\\s+"); // Splitting the string into words (/s+ matches multiple whitespace)
+
 
 		for (int i = 0; i < words.length; i++){
 			String word = words[i];
-			System.out.println("Processing word: '" + word + "'");
-			// Adding the altered word back into string (.append adds content to the end of an existing sequence of characters)
 			if (!word.isEmpty()) { //edge casing code
+
+				// Adding the altered word back into string (.append adds content to the end of an existing sequence of characters)
 				outputString.append(alteredWord(word)).append(" ");
-			}else {
-				System.out.println("Empty string (skipping processing)");
 			}
 		}
 		return outputString.toString().trim(); // Returns full translation
 	}
 
 	private String alteredWord(String word){
-		System.out.println("Processing word: '" + word + "'");
 
-		if (word == null || word.isEmpty()){
-			System.out.println("Empty string (skipping processing)");
+		if (word == null || word.isEmpty()){ //checks if the word is empty so runtime error doesn't occur
+			//System.out.println("Empty string (skipping processing)");
 			return word;
-		} //checks if the word is empty so runtime error doesn't occur
-
-		char firstLetter = word.charAt(0);
-		if (Vowel(firstLetter)){ //checks if the first letter is a vowel
-			return word + "yay";
 		}
-		int firstVowel = firstVowelIndex(word); //finds placement of the first vowel in word
-		if(firstVowel == -1){return word + "ay";}
-		String first = word.substring(0, firstVowel); // storing the consonates that are in front of the vowel
-		String last = word.substring(firstVowel); // storing the rest of the world (prep for shifting)
-		return last + first + "ay"; //reorder
+
+
+		int lastIndex = word.length() - 1; //Extract punctuation from the end of the word
+		while (lastIndex >= 0 && !Character.isLetterOrDigit(word.charAt(lastIndex))){
+			lastIndex--;
+		}
+		String allWord = word.substring(0, lastIndex + 1);
+		String punctuation = word.substring(lastIndex + 1);
+
+		char firstLetter = allWord.charAt(0);
+		if (Vowel(firstLetter)){ //checks if the first letter is a vowel
+			return allWord + "yay" + punctuation;
+		}
+//		//Handling hyphented words
+//		if(allWord.contains("-")){
+//			String[] parts = allWord.split("-");
+//			return hyphenatedWords(parts) + punctuation;
+//		}
+
+
+		int firstVowel = firstVowelIndex(allWord); //finds placement of the first vowel in word
+		if(firstVowel == -1){return allWord + "ay" + punctuation;}
+		String first = allWord.substring(0, firstVowel); // storing the consonates that are in front of the vowel
+		String last = allWord.substring(firstVowel); // storing the rest of the world (prep for shifting)
+		return last + first + "ay" + punctuation; //reorder
 	}
-	private int firstVowelIndex(String word){
-		for (int i = 0; i < word.length(); i++){
-			if ("aeiouAEIOU".indexOf(word.charAt(i)) >= 0){ //checks if the char is a vowel
+
+	private int firstVowelIndex(String allWord){
+		for (int i = 0; i < allWord.length(); i++){
+			if ("aeiouAEIOU".indexOf(allWord.charAt(i)) >= 0){ //checks if the char is a vowel
 				return i;
 			}
 		}
 		return -1; //no vowel
 	}
+
 	private boolean Vowel(char c){ //Identity of a vowel
 		String vowels = "aeiouAEIOU";
 		return vowels.indexOf(c) >= 0;
 	}
+
 	public static void main (String args[]) {
 		if (args.length != 1){
 			System.err.println ("Error: Incorrect number of command line arguments");
@@ -134,6 +149,6 @@ public class Translator
 			3) MAKE A CONDITION THAT CHECKS FOR - AND TREAT IT DIFFERENTLY FROM THE OTHER PUNCTUATION
 			4) LOOK OUT FOR RULE 6 AND MAKE SURE ANY OTHER EDGE CASES NOT IN THE INPUT TEXT ARE PRESENTED FOR
 		 */
-    processLinesInFile (args[0]);
+		processLinesInFile (args[0]);
 	}
 }
