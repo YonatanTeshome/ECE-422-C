@@ -65,15 +65,31 @@ public class Translator
 		
 		String[] words = inputString.split("\\s+"); // Splitting the string into words (/s+ matches multiple whitespace)
 
+		if (inputString == null || inputString.trim().isEmpty()) {
+			return ""; // Return an empty string or appropriate default value
+		}
+
 		for (int i = 0; i < words.length; i++){
 			String word = words[i];
+			System.out.println("Processing word: '" + word + "'");
 			// Adding the altered word back into string (.append adds content to the end of an existing sequence of characters)
-			outputString.append(alteredWord(word)).append(" ");
+			if (!word.isEmpty()) { //edge casing code
+				outputString.append(alteredWord(word)).append(" ");
+			}else {
+				System.out.println("Empty string (skipping processing)");
+			}
 		}
 		return outputString.toString().trim(); // Returns full translation
 	}
 
 	private String alteredWord(String word){
+		System.out.println("Processing word: '" + word + "'");
+
+		if (word == null || word.isEmpty()){
+			System.out.println("Empty string (skipping processing)");
+			return word;
+		} //checks if the word is empty so runtime error doesn't occur
+
 		char firstLetter = word.charAt(0);
 		if (Vowel(firstLetter)){ //checks if the first letter is a vowel
 			return word + "yay";
