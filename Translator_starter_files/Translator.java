@@ -1,8 +1,8 @@
-// ECE 422C Translator 
-// <Your Name Here>
-// <Your EID Here>
+// ECE 422C Pig Latin Translator 
+// Yonatan Teshome
+// YH23572
 // Slip days used: 0
-// Fall 2024 
+// Spring 2025 
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -61,10 +61,29 @@ public class Translator
 	public String translate (String inputString) 
 	{ 
 		// modify the following code. Add/delete anything you want after this point.
-		String outputString = new String(inputString); // makes a copy of inputString. 
-		return outputString;
+		StringBuilder outputString = new StringBuilder(); // StringBuilder allows for effective string manipulation
+		
+		String[] words = inputString.split("\\s+"); // Splitting the string into words (/s+ matches multiple whitespace)
+		
+		for (int i = 0; i < words.length; i++){
+			String word = words[i];
+			// Adding the altered word back into string (.append adds content to the end of an existing sequence of characters)
+			outputString.append(alteredWord(word)).append(" "); 
+		}
+		return outputString.toString().trim(); // Returns full translation
 	}
 
+	private String alteredWord(String word){
+		char firstLetter = word.charAt(0);
+		if (Vowel(firstLetter)){ //checks if the first letter is a vowel
+			return word + "yay";
+		}
+		return word; //place holder
+	}
+	private boolean Vowel(char c){ //Identity of a vowel
+		String vowels = "aeiouAEIOU";
+		return vowels.indexOf(c) >= 0;
+	}
 	public static void main (String args[]) 
 	{ 
 		if (args.length != 1) 
