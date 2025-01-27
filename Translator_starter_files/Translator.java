@@ -64,11 +64,11 @@ public class Translator
 		StringBuilder outputString = new StringBuilder(); // StringBuilder allows for effective string manipulation
 		
 		String[] words = inputString.split("\\s+"); // Splitting the string into words (/s+ matches multiple whitespace)
-		
+
 		for (int i = 0; i < words.length; i++){
 			String word = words[i];
 			// Adding the altered word back into string (.append adds content to the end of an existing sequence of characters)
-			outputString.append(alteredWord(word)).append(" "); 
+			outputString.append(alteredWord(word)).append(" ");
 		}
 		return outputString.toString().trim(); // Returns full translation
 	}
@@ -78,16 +78,26 @@ public class Translator
 		if (Vowel(firstLetter)){ //checks if the first letter is a vowel
 			return word + "yay";
 		}
-		return word; //place holder
+		int firstVowel = firstVowelIndex(word); //finds placement of the first vowel in word
+		if(firstVowel == -1){return word + "ay";}
+		String first = word.substring(0, firstVowel); // storing the consonates that are in front of the vowel
+		String last = word.substring(firstVowel); // storing the rest of the world (prep for shifting)
+		return last + first + "ay"; //reorder
+	}
+	private int firstVowelIndex(String word){
+		for (int i = 0; i < word.length(); i++){
+			if ("aeiouAEIOU".indexOf(word.charAt(i)) >= 0){ //checks if the char is a vowel
+				return i;
+			}
+		}
+		return -1; //no vowel
 	}
 	private boolean Vowel(char c){ //Identity of a vowel
 		String vowels = "aeiouAEIOU";
 		return vowels.indexOf(c) >= 0;
 	}
-	public static void main (String args[]) 
-	{ 
-		if (args.length != 1) 
-		{
+	public static void main (String args[]) {
+		if (args.length != 1){
 			System.err.println ("Error: Incorrect number of command line arguments");
 			System.exit(-1);
 		}
