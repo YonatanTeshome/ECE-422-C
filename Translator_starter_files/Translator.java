@@ -15,7 +15,7 @@ public class Translator
 
 	/**
 	 * Opens the file specified in String filename, reads each line in it
-	 * Invokes translate () on each line in the file, and prints out the  
+	 * Invokes translate () on each line in the file, and prints out the
 	 * translated piglatin string.
 	 * @param filename - the name of the file that needs to be read
 	 */
@@ -50,13 +50,13 @@ public class Translator
 	}
 
 	/**
-	 * Converts the inputString into piglatin based on rules specified 
-	 * in your assignment write-up. 
+	 * Converts the inputString into piglatin based on rules specified
+	 * in your assignment write-up.
 	 *
-	 * @param inputString - the String that needs to be translated to 
+	 * @param inputString - the String that needs to be translated to
 	 * 			piglatin
 	 * @return the String object containing the piglatin translation of the
-	 *         inputString    
+	 *         inputString
 	 */
 	public String translate (String inputString) {
 
@@ -71,7 +71,7 @@ public class Translator
 
 		for (int i = 0; i < words.length; i++){
 			String word = words[i];
-			if (!word.isEmpty()) { //edge casing code
+			if (!word.isEmpty()) {
 
 				// Adding the altered word back into string (.append adds content to the end of an existing sequence of characters)
 				outputString.append(alteredWord(word)).append(" ");
@@ -80,37 +80,55 @@ public class Translator
 		return outputString.toString().trim(); // Returns full translation
 	}
 
-	private String alteredWord(String word){
+	private String alteredWord(String word) {
 
-		if (word == null || word.isEmpty()){ //checks if the word is empty so runtime error doesn't occur
+		if (word == null || word.isEmpty()) { //checks if the word is empty so runtime error doesn't occur
 			//System.out.println("Empty string (skipping processing)");
 			return word;
 		}
 
-
+		//Trailing Punctuation
 		int lastIndex = word.length() - 1; //Extract punctuation from the end of the word
-		while (lastIndex >= 0 && !Character.isLetterOrDigit(word.charAt(lastIndex))){
+		while (lastIndex >= 0 && !Character.isLetterOrDigit(word.charAt(lastIndex))) {
 			lastIndex--;
 		}
 		String allWord = word.substring(0, lastIndex + 1);
 		String punctuation = word.substring(lastIndex + 1);
 
-		char firstLetter = allWord.charAt(0);
-		if (Vowel(firstLetter)){ //checks if the first letter is a vowel
-			return allWord + "yay" + punctuation;
+
+		// Hyphens
+		if (allWord.contains("-")) {
+			return hyphenatedWord(allWord) + punctuation;
 		}
-//		//Handling hyphented words
-//		if(allWord.contains("-")){
-//			String[] parts = allWord.split("-");
-//			return hyphenatedWords(parts) + punctuation;
-//		}
 
+		return singularWord(allWord) + punctuation;
+	}
 
+	private String hyphenatedWord(String word) {
+		String[] parts = word.split("-");
+		StringBuilder rebuild = new StringBuilder();
+		for (int i = 0; i < parts.length; i++) {
+			rebuild.append(alteredWord(parts[i]));
+			if (i < parts.length - 1) {
+				rebuild.append("-");
+			}
+		}
+		return rebuild.toString();
+	}
+	private String singularWord(String allWord){
+		if (allWord.isEmpty()) {
+			return allWord;
+		}
+		char firstLetter = allWord.charAt(0);
+		if (Vowel(firstLetter)) { //checks if the first letter is a vowel
+			return allWord + "yay";
+		}
 		int firstVowel = firstVowelIndex(allWord); //finds placement of the first vowel in word
-		if(firstVowel == -1){return allWord + "ay" + punctuation;}
+		if(firstVowel == -1){return allWord + "ay";}
+
 		String first = allWord.substring(0, firstVowel); // storing the consonates that are in front of the vowel
 		String last = allWord.substring(firstVowel); // storing the rest of the world (prep for shifting)
-		return last + first + "ay" + punctuation; //reorder
+		return last + first + "ay"; //reorder
 	}
 
 	private int firstVowelIndex(String allWord){
