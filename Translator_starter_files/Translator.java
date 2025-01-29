@@ -8,11 +8,11 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Translator
 {
-
-
 	/**
 	 * Opens the file specified in String filename, reads each line in it
 	 * Invokes translate () on each line in the file, and prints out the
@@ -31,7 +31,7 @@ public class Translator
 			for (String s = reader.readLine(); s != null; s = reader.readLine())
 			{
 				System.out.println("The input string is: " + s);
-				String pigLatin = translator.translate(s);
+				String pigLatin = translator.spacePreserver(s); //edited hopefully allowed
 				System.out.println("The Pig Latin version is: " + pigLatin);
 			}
 		}
@@ -58,82 +58,89 @@ public class Translator
 	 * @return the String object containing the piglatin translation of the
 	 *         inputString
 	 */
-	public String translate (String inputString) {
-
-		if (inputString == null || inputString.trim().isEmpty()) {
-			return ""; // Return an empty string
+	public String spacePreserver(String inputString) {
+		if (inputString == null || inputString.isEmpty()) {
+			return "";
 		}
 
-		StringBuilder outputString = new StringBuilder(); // StringBuilder allows for effective string manipulation
+		//Regex approach (clumps up white spaces or non-white spaces)
+		Pattern pattern = Pattern.compile("\\s+|[^\\s]+");
+		Matcher matcher = pattern.matcher(inputString);
 
-		String[] words = inputString.split("\\s+"); // Splitting the string into words (/s+ matches multiple whitespace)
+		StringBuilder sb = new StringBuilder();
+		while (matcher.find()) {
+			String clump = matcher.group(); // produce the exact substring
 
-
-		for (int i = 0; i < words.length; i++){
-			String word = words[i];
-			if (!word.isEmpty()) {
-
-				// Adding the altered word back into string (.append adds content to the end of an existing sequence of characters)
-				outputString.append(alteredWord(word)).append(" ");
+			if (clump.matches("\\s+")) {
+				sb.append(clump); //append the whitespace
+			} else {
+				String pigLatin = translateClump(clump);// start translating
+				sb.append(pigLatin);
 			}
 		}
-		return outputString.toString().trim(); // Returns full translation
+		return sb.toString();
 	}
 
-	private String alteredWord(String word) {
+	public String translateClump (String clump) {
 
-		if (word == null || word.isEmpty()) { //checks if the word is empty so runtime error doesn't occur
-			//System.out.println("Empty string (skipping processing)");
-			return word;
+		if (weirdSymbols(clump)) {
+			return clump; // Rule 6
 		}
 
 		//Trailing Punctuation
-		int lastIndex = word.length() - 1; //Extract punctuation from the end of the word
-		while (lastIndex >= 0 && !Character.isLetterOrDigit(word.charAt(lastIndex))) {
+		int lastIndex = clump.length() - 1; //Extract punctuation from the end of the word
+		while (lastIndex >= 0 && !Character.isLetterOrDigit(clump.charAt(lastIndex))) {
 			lastIndex--;
 		}
-		String allWord = word.substring(0, lastIndex + 1);
-		String punctuation = word.substring(lastIndex + 1);
-
+		String allWord = clump.substring(0, lastIndex + 1); //only words remain
+		String punctuation = clump.substring(lastIndex + 1); // remaining is a trailing punctuation
 
 		// Hyphens
 		if (allWord.contains("-")) {
 			return hyphenatedWord(allWord) + punctuation;
 		}
-
 		return singularWord(allWord) + punctuation;
+	}
+
+	private String singularWord(String allWord){
+		if (allWord.isEmpty() || !allWord.matches("[a-zA-Z']+")) {
+			return allWord; // returns if empty (not possible tbh) or if it's not letters/conjuction
+		}
+
+		int firstVowel = firstVowelIndex(allWord); //finds placement of the first vowel in word
+		if (firstVowel == 0) { //checks if the first letter is a vowel
+			return allWord + "yay";
+		}else if(firstVowel > 0) {
+			String first = allWord.substring(0, firstVowel); // storing the consonates that are in front of the vowel
+			String last = allWord.substring(firstVowel); // storing the rest of the world (prep for shifting)
+			return last + first + "ay"; //reorder
+		}else {
+				return allWord + "ay";
+		}
 	}
 
 	private String hyphenatedWord(String word) {
 		String[] parts = word.split("-");
 		StringBuilder rebuild = new StringBuilder();
 		for (int i = 0; i < parts.length; i++) {
-			rebuild.append(alteredWord(parts[i]));
+			// If chunk has digits/weird symbols => skip transform
+			if (weirdSymbols(parts[i])) {
+				rebuild.append(parts[i]);
+			} else {
+				// Otherwise, apply 'singularWord' to that piece
+				rebuild.append(singularWord(parts[i]));
+			}
 			if (i < parts.length - 1) {
 				rebuild.append("-");
 			}
 		}
 		return rebuild.toString();
 	}
-	private String singularWord(String allWord){
-		if (allWord.isEmpty()) {
-			return allWord;
-		}
-		char firstLetter = allWord.charAt(0);
-		if (Vowel(firstLetter)) { //checks if the first letter is a vowel
-			return allWord + "yay";
-		}
-		int firstVowel = firstVowelIndex(allWord); //finds placement of the first vowel in word
-		if(firstVowel == -1){return allWord + "ay";}
-
-		String first = allWord.substring(0, firstVowel); // storing the consonates that are in front of the vowel
-		String last = allWord.substring(firstVowel); // storing the rest of the world (prep for shifting)
-		return last + first + "ay"; //reorder
-	}
 
 	private int firstVowelIndex(String allWord){
 		for (int i = 0; i < allWord.length(); i++){
-			if ("aeiouAEIOU".indexOf(allWord.charAt(i)) >= 0){ //checks if the char is a vowel
+			char c = Character.toLowerCase(allWord.charAt(i));
+			if ("aeiou".indexOf(c) >= 0 || (c == 'y' && i > 0)){ //checks if the char is a vowel (also y edge case)
 				return i;
 			}
 		}
@@ -141,8 +148,18 @@ public class Translator
 	}
 
 	private boolean Vowel(char c){ //Identity of a vowel
-		String vowels = "aeiouAEIOU";
+		String vowels = "aeiou";
 		return vowels.indexOf(c) >= 0;
+	}
+
+	private boolean weirdSymbols(String clump) {
+		if (clump.matches(".*\\d+.*")){
+			return true; //numbers
+		}
+		if (clump.matches(".*[@#$%^&*_=+<>`~].*")) {
+			return true; //other symbols that lead to skipping
+		}
+		return false;
 	}
 
 	public static void main (String args[]) {
@@ -150,23 +167,6 @@ public class Translator
 			System.err.println ("Error: Incorrect number of command line arguments");
 			System.exit(-1);
 		}
-		/*
-		OUTPUT OBSERVATIONS:
-			1) PUNCTUATION IS STAYING IN PLACE INSTEAD OF MOVING TO THE FRONT
-			2) CODE IS REPEATING EACH INPUT TWICE
-				A) FIRST TIME = THROUGH ITS RESPECTIVE LOOP (CORRECT)
-				B) SECOND LOOP = ALL VOWELS AND IS ADDING "YAY" TO EACH WORD
-			3) NOT RECOGNISING THAT - MAKE THE WORDS SEPARATE WHILE USING - TO CONNECT THE WORDS TOGETHER.
-
-
-		COURSE OF ACTION:
-			1) FIGURE OUT THE LOOP ISSUE
-				A) LOOP THOUGH MY CONDITIONS OF MY LOOPS TO SEE WHY IT'S DOING IT EXACTLY
-				2 TIMES COMPARED TO GOING ON FOREVER, OR STOPPING AT 1 LOOP
-			2) MAKE A CONDITION THAT LOOKS FOR THE PUNCTUATIONS " , (...) : ; ' . ! ?" (THE () ARE NOT PUNCTUATION)
-			3) MAKE A CONDITION THAT CHECKS FOR - AND TREAT IT DIFFERENTLY FROM THE OTHER PUNCTUATION
-			4) LOOK OUT FOR RULE 6 AND MAKE SURE ANY OTHER EDGE CASES NOT IN THE INPUT TEXT ARE PRESENTED FOR
-		 */
 		processLinesInFile (args[0]);
 	}
 }
