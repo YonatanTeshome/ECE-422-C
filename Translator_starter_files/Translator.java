@@ -4,6 +4,25 @@
 // Slip days used: 0
 // Spring 2025 
 
+
+/**
+ * The Translator class provides methods to convert English text into
+ * Pig Latin while preserving spacing and handling special rules such
+ * as hyphenation, contractions, and skipping words with digits or
+ * special symbols.
+ *
+ * User Instruction: Compile and run the Translator with a single
+ * command-line argument specifying a file of english phrases to translate
+ *
+ * @author
+ * 			Yonatan Teshome
+ * 			ECE422C, Spring 2025
+ * @version 1.0 (January 28, 2025)
+ *
+ * @see file:///C:/Users/Yonatan%20Teshome/Desktop/ECE%20422c/Lab%201/Translator_starter_files/Translator.html
+ *
+ */
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -14,6 +33,10 @@ import java.util.regex.Pattern;
 public class Translator
 {
 	/**
+	 * Reads each line form the specified file, prints the original line,
+	 * converts it to Pig latin, and prints the translation.
+	 * @parm filename the path to the file containing lines to translate
+	 *
 	 * Opens the file specified in String filename, reads each line in it
 	 * Invokes translate () on each line in the file, and prints out the
 	 * translated piglatin string.
@@ -25,7 +48,9 @@ public class Translator
 		Translator translator = new Translator();
 		try
 		{
-			FileReader freader = new FileReader(filename);
+			//FileReader freader = new FileReader(filename);
+			FileReader freader = new FileReader("Translator_starter_files/a1-piglatin-phrases.txt");
+
 			BufferedReader reader = new BufferedReader(freader);
 
 			for (String s = reader.readLine(); s != null; s = reader.readLine())
@@ -57,6 +82,12 @@ public class Translator
 	 * 			piglatin
 	 * @return the String object containing the piglatin translation of the
 	 *         inputString
+	 *
+	 * Takes a single line of text and returns a version with each clump
+	 * translated to Pig Latin if eligible, preserving all original spacing.
+	 *
+	 * @param inputString the original line of text
+	 * @return the Pig Latin translated line, keeping its spacing
 	 */
 	public String spacePreserver(String inputString) {
 		if (inputString == null || inputString.isEmpty()) {
@@ -81,6 +112,13 @@ public class Translator
 		return sb.toString();
 	}
 
+	/**
+	 * Translates one non-whitespace clump to Pig Latin if it contains only
+	 * letter characters (also apostrophes). If it contains digits or other
+	 * special symbols, it is returned without alterations (Rule 6)
+ 	 * @param clump a non-whitespace substring
+	 * @return the Pig Latin version of the clump, or unchanged if skipped
+	 */
 	public String translateClump (String clump) {
 
 		if (weirdSymbols(clump)) {
@@ -102,6 +140,16 @@ public class Translator
 		return singularWord(allWord) + punctuation;
 	}
 
+	/**
+	 * Applies standard Pig Latin rules to a single "word" of letters
+	 * and apostrophes:
+	 * * If it begins with a vowel, appends "yay"
+	 * * If it has a vowel later, move the leading consonants to the end + "ay"
+	 * * if it has no vowel, just append "ay"
+	 *
+	 * @param allWord a clump composed of purely alphabetic/ apostrophe word
+	 * @return the Pig Latin translation of the word
+	 */
 	private String singularWord(String allWord){
 		if (allWord.isEmpty() || !allWord.matches("[a-zA-Z']+")) {
 			return allWord; // returns if empty (not possible tbh) or if it's not letters/conjuction
@@ -119,6 +167,12 @@ public class Translator
 		}
 	}
 
+	/**
+	 * Splits a hyphenated clump into separate ones, and applies Pig Latin to
+	 * each clump (if applicable), then reassembles them with a hyphen
+	 * @param word the hyphenated string to split and translate
+	 * @return a single string of Pig Latin-transformed clump joined by "-"
+	 */
 	private String hyphenatedWord(String word) {
 		String[] parts = word.split("-");
 		StringBuilder rebuild = new StringBuilder();
@@ -137,6 +191,13 @@ public class Translator
 		return rebuild.toString();
 	}
 
+	/**
+	 * Locates the index of the first vowel in a word (treats 'y' as
+	 * a vowel only if it is not the first letter)
+	 *
+	 * @param allWord the string to inspect
+	 * @return the index of the first vowel, or -1 if no vowel is found
+	 */
 	private int firstVowelIndex(String allWord){
 		for (int i = 0; i < allWord.length(); i++){
 			char c = Character.toLowerCase(allWord.charAt(i));
@@ -147,11 +208,14 @@ public class Translator
 		return -1; //no vowel
 	}
 
-	private boolean Vowel(char c){ //Identity of a vowel
-		String vowels = "aeiou";
-		return vowels.indexOf(c) >= 0;
-	}
 
+	/**
+	 * Determines whether a given clump contains digits or disallowed symbols,
+	 * which means it should remain unchanged(Rule 6)
+	 *
+	 * @param clump the clump to check
+	 * @return true if the clump has digits or forbidden symbols: false otherwise
+	 */
 	private boolean weirdSymbols(String clump) {
 		if (clump.matches(".*\\d+.*")){
 			return true; //numbers
@@ -162,6 +226,12 @@ public class Translator
 		return false;
 	}
 
+	/**
+	 * The main entry point. Expects exactly one argument: the filename
+	 * to be processed. Exits if the argument count is wrong.
+	 *
+	 * @param args command-line arguments
+	 */
 	public static void main (String args[]) {
 		if (args.length != 1){
 			System.err.println ("Error: Incorrect number of command line arguments");
